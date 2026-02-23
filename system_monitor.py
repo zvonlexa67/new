@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 System Monitor - Скрипт для мониторинга ресурсов системы
 """
@@ -8,7 +8,50 @@ import psutil
 import datetime
 import json
 import os
+import getpass
+import argparse
 from pathlib import Path
+
+
+def get_credentials(username=None, password=None):
+    """
+    Ввести или получить имя пользователя и пароль для дальнейшего использования
+
+    Args:
+        username: Имя пользователя (если None, будет запрошено интерактивно)
+        password: Пароль (если None, будет запрошен интерактивно)
+
+    Returns:
+        tuple: (username, password) - имя пользователя и пароль
+    """
+    # Интерактивный ввод, если данные не предоставлены
+    if username is None:
+        print("Ввод учетных данных")
+        print("-" * 40)
+        
+        username = input("Имя пользователя: ").strip()
+        
+        if not username:
+            print("Ошибка: имя пользователя не может быть пустым")
+            return None, None
+        
+        password = getpass.getpass("Пароль: ")
+        
+        if not password:
+            print("Ошибка: пароль не может быть пустым")
+            return None, None
+        
+        print("-" * 40)
+        print(f"✓ Учетные данные введены для: {username}")
+    else:
+        # Данные предоставлены через аргументы
+        if not password:
+            print(f"Ошибка: пароль не указан для пользователя '{username}'")
+            return None, None
+        
+        print(f"✓ Учетные данные получены для: {username}")
+    
+    return username, password
 
 
 def check_os():
@@ -261,6 +304,19 @@ def main():
     """Основная функция"""
     check_os()
     # check_root()
+    
+    # Парсинг аргументов командной строки
+    parser = argparse.ArgumentParser(description="System Monitor - мониторинг ресурсов системы")
+    parser.add_argument("-u", "--username", type=str, help="Имя пользователя")
+    parser.add_argument("-p", "--password", type=str, help="Пароль")
+    args = parser.parse_args()
+    
+    # Ввод учетных данных (интерактивно или из аргументов)
+    username, password = get_credentials(args.username, args.password)
+    if username and password:
+        # Здесь можно использовать username и password для дальнейшей работы
+        pass
+    
     report = generate_report()
     print_report(report)
     save_report(report)
